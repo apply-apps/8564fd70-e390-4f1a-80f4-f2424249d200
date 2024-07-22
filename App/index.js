@@ -1,66 +1,63 @@
 // Filename: index.js
 // Combined code from all files
-import React, { useState } from 'react';
-import { SafeAreaView, StyleSheet, Text, TextInput, Button, View, ScrollView, TouchableOpacity, FlatList } from 'react-native';
 
-export default function App() {
-    const [task, setTask] = useState('');
-    const [tasks, setTasks] = useState([]);
+import React, { useEffect, useState } from 'react';
+import { SafeAreaView, StyleSheet, Text, View, Image, ActivityIndicator, FlatList, TouchableOpacity } from 'react-native';
+import axios from 'axios';
 
-    const addTask = () => {
-        if (task) {
-            const newTask = {
-                id: tasks.length + 1,
-                name: task,
-                completed: false
-            };
-            setTasks([...tasks, newTask]);
-            setTask('');
-        }
-    };
+const tattoos = [
+    { id: '1', image: 'https://picsum.photos/200/300?random=1', artist: 'Artist 1' },
+    { id: '2', image: 'https://picsum.photos/200/300?random=2', artist: 'Artist 2' },
+    { id: '3', image: 'https://picsum.photos/200/300?random=3', artist: 'Artist 3' },
+    // Add more tattoos as needed
+];
 
-    const toggleTaskCompletion = (id) => {
-        const updatedTasks = tasks.map(task => {
-            if (task.id === id) {
-                return { ...task, completed: !task.completed };
-            }
-            return task;
-        });
-        setTasks(updatedTasks);
-    };
+const TattooGallery = () => {
+    const [isLoading, setIsLoading] = useState(false);
+    const [tattooList, setTattooList] = useState(tattoos);
 
-    const deleteTask = (id) => {
-        const updatedTasks = tasks.filter(task => task.id !== id);
-        setTasks(updatedTasks);
-    };
+    useEffect(() => {
+        const fetchTattoos = async () => {
+            setIsLoading(true);
+
+            // Simulate an API call
+            setTimeout(() => {
+                setTattooList(tattoos);
+                setIsLoading(false);
+            }, 2000);
+        };
+
+        fetchTattoos();
+    }, []);
+
+    const renderTattoo = ({ item }) => (
+        <TouchableOpacity style={styles.tattooContainer}>
+            <Image source={{ uri: item.image }} style={styles.tattooImage} />
+            <Text style={styles.tattooArtist}>{item.artist}</Text>
+        </TouchableOpacity>
+    );
 
     return (
-        <SafeAreaView style={styles.container}>
-            <ScrollView contentContainerStyle={styles.scrollContainer}>
-                <Text style={styles.title}>To-Do List</Text>
-
-                <TextInput
-                    style={styles.input}
-                    placeholder="Add a new task"
-                    value={task}
-                    onChangeText={setTask}
-                />
-
-                <Button title="Add Task" onPress={addTask} />
-
+        <View style={styles.galleryContainer}>
+            {isLoading ? (
+                <ActivityIndicator size="large" color="#0000ff"/>
+            ) : (
                 <FlatList
-                    data={tasks}
-                    renderItem={({ item }) => (
-                        <View style={styles.taskContainer}>
-                            <TouchableOpacity onPress={() => toggleTaskCompletion(item.id)}>
-                                <Text style={item.completed ? styles.taskCompleted : styles.task}>{item.name}</Text>
-                            </TouchableOpacity>
-                            <Button title="Delete" onPress={() => deleteTask(item.id)} />
-                        </View>
-                    )}
-                    keyExtractor={(item) => item.id.toString()}
+                    data={tattooList}
+                    renderItem={renderTattoo}
+                    keyExtractor={(item) => item.id}
+                    contentContainerStyle={styles.list}
                 />
-            </ScrollView>
+            )}
+        </View>
+    );
+};
+
+export default function App() {
+    return (
+        <SafeAreaView style={styles.container}>
+            <Text style={styles.title}>Tattoo Match</Text>
+            <TattooGallery />
         </SafeAreaView>
     );
 }
@@ -68,47 +65,34 @@ export default function App() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        backgroundColor: '#fff',
         marginTop: 50,
-        marginHorizontal: 20,
-    },
-    scrollContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
+        paddingHorizontal: 20,
     },
     title: {
         fontSize: 24,
         fontWeight: 'bold',
+        textAlign: 'center',
         marginBottom: 20,
     },
-    input: {
-        width: '100%',
-        padding: 15,
-        borderWidth: 1,
-        borderColor: '#ccc',
-        borderRadius: 5,
-        marginBottom: 10,
+    galleryContainer: {
+        flex: 1,
     },
-    taskContainer: {
-        padding: 20,
-        backgroundColor: '#fff',
-        borderRadius: 10,
-        shadowColor: '#000',
-        shadowOpacity: 0.1,
-        shadowRadius: 20,
-        elevation: 5,
-        marginBottom: 10,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
+    list: {
         alignItems: 'center',
-        width: '100%',
     },
-    task: {
-        fontSize: 18,
+    tattooContainer: {
+        marginBottom: 20,
+        alignItems: 'center',
     },
-    taskCompleted: {
+    tattooImage: {
+        width: 200,
+        height: 300,
+        borderRadius: 10,
+        marginBottom: 10,
+    },
+    tattooArtist: {
         fontSize: 18,
-        textDecorationLine: 'line-through',
-        color: 'grey',
+        fontWeight: 'bold',
     },
 });

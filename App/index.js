@@ -20,7 +20,7 @@ const WorkoutDisplay = ({ workouts }) => {
     );
 };
 
-const App = () => {
+export default function App() {
     const [workoutName, setWorkoutName] = useState('');
     const [exercises, setExercises] = useState('');
     const [workouts, setWorkouts] = useState([]);
@@ -64,7 +64,7 @@ const App = () => {
             </ScrollView>
         </SafeAreaView>
     );
-};
+}
 
 const styles = StyleSheet.create({
     container: {
@@ -119,5 +119,3 @@ const styles = StyleSheet.create({
         lineHeight: 20,
     },
 });
-
-export default App;

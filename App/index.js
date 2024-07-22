@@ -1,10 +1,13 @@
 // Filename: index.js
 // Combined code from all files
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { SafeAreaView, StyleSheet, Text, View, Image, ActivityIndicator, FlatList, TouchableOpacity, Button } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import * as tf from '@tensorflow/tfjs';
+import * as mobilenet from '@tensorflow-models/mobilenet';
 
+// TattooGallery component
 const tattoos = [
     { id: '1', image: 'https://picsum.photos/200/300?random=1', artist: 'Artist 1' },
     { id: '2', image: 'https://picsum.photos/200/300?random=2', artist: 'Artist 2' },
@@ -34,10 +37,21 @@ const TattooGallery = () => {
     const searchSimilarTattoos = async (imageUri) => {
         setIsLoading(true);
 
-        // Here you would upload the image to your server and use AI to find similar tattoos.
-        // For demonstration purposes, I'm setting a timeout to simulate an API call.
+        // Load the image into a tensor
+        const img = new Image();
+        img.src = imageUri;
+        const imageTensor = tf.browser.fromPixels(img).resizeNearestNeighbor([224, 224]).toFloat().expandDims();
+
+        // Load the MobileNet model
+        const model = await mobilenet.load();
+
+        // Get embeddings for the uploaded image
+        const embeddings = model.infer(imageTensor);
+
+        // Here you would compare these embeddings with those of images in your database
+        // For demonstration purposes, I'm setting a timeout to simulate an API call
         setTimeout(() => {
-            setTattooList(tattoos);
+            setTattooList(tattoos); // Replace this with actual results based on the embedddings comparison
             setIsLoading(false);
         }, 2000);
     };
@@ -50,7 +64,7 @@ const TattooGallery = () => {
     );
 
     return (
-        <View style={styles.galleryContainer}>
+        <View style={styles.container}>
             <Button title="Upload Image" onPress={pickImage} />
             {selectedImage && <Image source={{ uri: selectedImage }} style={styles.selectedImage} />}
             {isLoading ? (
@@ -67,29 +81,8 @@ const TattooGallery = () => {
     );
 };
 
-const App = () => {
-    return (
-        <SafeAreaView style={styles.container}>
-            <Text style={styles.title}>Tattoo Match</Text>
-            <TattooGallery />
-        </SafeAreaView>
-    );
-}
-
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
-        backgroundColor: '#fff',
-        marginTop: 50,
-        paddingHorizontal: 20,
-    },
-    title: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        textAlign: 'center',
-        marginBottom: 20,
-    },
-    galleryContainer: {
         flex: 1,
     },
     list: {
@@ -118,4 +111,27 @@ const styles = StyleSheet.create({
     },
 });
 
-export default App;
+// App component
+export default function App() {
+    return (
+        <SafeAreaView style={appStyles.container}>
+            <Text style={appStyles.title}>Tattoo Match</Text>
+            <TattooGallery />
+        </SafeAreaView>
+    );
+}
+
+const appStyles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: '#fff',
+        marginTop: 50,
+        paddingHorizontal: 20,
+    },
+    title: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        textAlign: 'center',
+        marginBottom: 20,
+    },
+});

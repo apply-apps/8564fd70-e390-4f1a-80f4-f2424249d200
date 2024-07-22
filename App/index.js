@@ -2,85 +2,69 @@
 // Combined code from all files
 
 import React, { useState } from 'react';
-import { SafeAreaView, StyleSheet, Text, TextInput, Button, View, ScrollView, ActivityIndicator } from 'react-native';
-import axios from 'axios';
+import { SafeAreaView, StyleSheet, Text, TextInput, Button, View, ScrollView } from 'react-native';
 
-const FairyTaleDisplay = ({ story }) => {
+const WorkoutDisplay = ({ workouts }) => {
     return (
-        <View style={styles.container}>
-            <Text style={styles.storyText}>{story}</Text>
+        <View style={styles.displayContainer}>
+            {workouts.map((workout) => (
+                <View key={workout.id} style={styles.workoutContainer}>
+                    <Text style={styles.workoutName}>{workout.name}</Text>
+                    <Text style={styles.exercisesTitle}>Exercises:</Text>
+                    {workout.exercises.map((exercise, index) => (
+                        <Text key={index} style={styles.exerciseText}>- {exercise.trim()}</Text>
+                    ))}
+                </View>
+            ))}
         </View>
     );
 };
 
-export default function App() {
-    const [heroes, setHeroes] = useState('');
-    const [villains, setVillains] = useState('');
-    const [plot, setPlot] = useState('');
-    const [story, setStory] = useState(null);
-    const [loading, setLoading] = useState(false);
+const App = () => {
+    const [workoutName, setWorkoutName] = useState('');
+    const [exercises, setExercises] = useState('');
+    const [workouts, setWorkouts] = useState([]);
 
-    const generateFairyTale = async () => {
-        setLoading(true);
-        setStory(null);
-
-        try {
-            const messages = [
-                { role: 'system', content: 'You are a helpful assistant. Create a fairy tale based on given heroes, villains, and plot.' },
-                { role: 'user', content: `Heroes: ${heroes}` },
-                { role: 'user', content: `Villains: ${villains}` },
-                { role: 'user', content: `Plot: ${plot}` }
-            ];
-
-            const response = await axios.post('http://apihub.p.appply.xyz:3300/chatgpt', {
-                messages: messages,
-                model: 'gpt-4o'
-            });
-
-            const resultString = response.data.response;
-            setStory(resultString);
-        } catch (error) {
-            console.error('Error generating fairy tale:', error);
-        } finally {
-            setLoading(false);
+    const addWorkout = () => {
+        if (workoutName && exercises) {
+            const newWorkout = {
+                id: workouts.length + 1,
+                name: workoutName,
+                exercises: exercises.split(',')
+            };
+            setWorkouts([...workouts, newWorkout]);
+            setWorkoutName('');
+            setExercises('');
         }
     };
 
     return (
         <SafeAreaView style={styles.container}>
             <ScrollView contentContainerStyle={styles.scrollContainer}>
-                <Text style={styles.title}>Fairy Tale Generator</Text>
+                <Text style={styles.title}>Workout Tracker</Text>
 
                 <TextInput
                     style={styles.input}
-                    placeholder="Enter Heroes"
-                    value={heroes}
-                    onChangeText={setHeroes}
+                    placeholder="Workout Name"
+                    value={workoutName}
+                    onChangeText={setWorkoutName}
                 />
                 <TextInput
                     style={styles.input}
-                    placeholder="Enter Villains"
-                    value={villains}
-                    onChangeText={setVillains}
-                />
-                <TextInput
-                    style={styles.input}
-                    placeholder="Enter Plot"
-                    value={plot}
-                    onChangeText={setPlot}
+                    placeholder="Exercises (comma separated)"
+                    value={exercises}
+                    onChangeText={setExercises}
                 />
 
-                <Button title="Generate Fairy Tale" onPress={generateFairyTale} />
+                <Button title="Add Workout" onPress={addWorkout} />
 
-                {loading && <ActivityIndicator size="large" color="#0000ff" />}
-
-                {story && (
-                    <FairyTaleDisplay story={story} />
+                {workouts.length > 0 && (
+                    <WorkoutDisplay workouts={workouts} />
                 )}
             </ScrollView>
         </SafeAreaView>
     );
-}
+};
 
 const styles = StyleSheet.create({
     container: {
@@ -106,8 +90,34 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         marginBottom: 10,
     },
-    storyText: {
+    displayContainer: {
+        width: '100%',
+        marginTop: 20,
+    },
+    workoutContainer: {
+        padding: 20,
+        backgroundColor: '#fff',
+        borderRadius: 10,
+        shadowColor: '#000',
+        shadowOpacity: 0.1,
+        shadowRadius: 20,
+        elevation: 5,
+        marginBottom: 10,
+    },
+    workoutName: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 10,
+    },
+    exercisesTitle: {
         fontSize: 16,
-        lineHeight: 24,
+        fontWeight: 'bold',
+        marginBottom: 5,
+    },
+    exerciseText: {
+        fontSize: 14,
+        lineHeight: 20,
     },
 });
+
+export default App;

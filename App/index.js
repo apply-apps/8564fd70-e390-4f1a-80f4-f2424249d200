@@ -1,66 +1,65 @@
 // Filename: index.js
 // Combined code from all files
-
 import React, { useState } from 'react';
-import { SafeAreaView, StyleSheet, Text, TextInput, Button, View, ScrollView } from 'react-native';
-
-const WorkoutDisplay = ({ workouts }) => {
-    return (
-        <View style={styles.displayContainer}>
-            {workouts.map((workout) => (
-                <View key={workout.id} style={styles.workoutContainer}>
-                    <Text style={styles.workoutName}>{workout.name}</Text>
-                    <Text style={styles.exercisesTitle}>Exercises:</Text>
-                    {workout.exercises.map((exercise, index) => (
-                        <Text key={index} style={styles.exerciseText}>- {exercise.trim()}</Text>
-                    ))}
-                </View>
-            ))}
-        </View>
-    );
-};
+import { SafeAreaView, StyleSheet, Text, TextInput, Button, View, ScrollView, TouchableOpacity, FlatList } from 'react-native';
 
 export default function App() {
-    const [workoutName, setWorkoutName] = useState('');
-    const [exercises, setExercises] = useState('');
-    const [workouts, setWorkouts] = useState([]);
+    const [task, setTask] = useState('');
+    const [tasks, setTasks] = useState([]);
 
-    const addWorkout = () => {
-        if (workoutName && exercises) {
-            const newWorkout = {
-                id: workouts.length + 1,
-                name: workoutName,
-                exercises: exercises.split(',')
+    const addTask = () => {
+        if (task) {
+            const newTask = {
+                id: tasks.length + 1,
+                name: task,
+                completed: false
             };
-            setWorkouts([...workouts, newWorkout]);
-            setWorkoutName('');
-            setExercises('');
+            setTasks([...tasks, newTask]);
+            setTask('');
         }
+    };
+
+    const toggleTaskCompletion = (id) => {
+        const updatedTasks = tasks.map(task => {
+            if (task.id === id) {
+                return { ...task, completed: !task.completed };
+            }
+            return task;
+        });
+        setTasks(updatedTasks);
+    };
+
+    const deleteTask = (id) => {
+        const updatedTasks = tasks.filter(task => task.id !== id);
+        setTasks(updatedTasks);
     };
 
     return (
         <SafeAreaView style={styles.container}>
             <ScrollView contentContainerStyle={styles.scrollContainer}>
-                <Text style={styles.title}>Workout Tracker</Text>
+                <Text style={styles.title}>To-Do List</Text>
 
                 <TextInput
                     style={styles.input}
-                    placeholder="Workout Name"
-                    value={workoutName}
-                    onChangeText={setWorkoutName}
-                />
-                <TextInput
-                    style={styles.input}
-                    placeholder="Exercises (comma separated)"
-                    value={exercises}
-                    onChangeText={setExercises}
+                    placeholder="Add a new task"
+                    value={task}
+                    onChangeText={setTask}
                 />
 
-                <Button title="Add Workout" onPress={addWorkout} />
+                <Button title="Add Task" onPress={addTask} />
 
-                {workouts.length > 0 && (
-                    <WorkoutDisplay workouts={workouts} />
-                )}
+                <FlatList
+                    data={tasks}
+                    renderItem={({ item }) => (
+                        <View style={styles.taskContainer}>
+                            <TouchableOpacity onPress={() => toggleTaskCompletion(item.id)}>
+                                <Text style={item.completed ? styles.taskCompleted : styles.task}>{item.name}</Text>
+                            </TouchableOpacity>
+                            <Button title="Delete" onPress={() => deleteTask(item.id)} />
+                        </View>
+                    )}
+                    keyExtractor={(item) => item.id.toString()}
+                />
             </ScrollView>
         </SafeAreaView>
     );
@@ -90,11 +89,7 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         marginBottom: 10,
     },
-    displayContainer: {
-        width: '100%',
-        marginTop: 20,
-    },
-    workoutContainer: {
+    taskContainer: {
         padding: 20,
         backgroundColor: '#fff',
         borderRadius: 10,
@@ -103,19 +98,17 @@ const styles = StyleSheet.create({
         shadowRadius: 20,
         elevation: 5,
         marginBottom: 10,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        width: '100%',
     },
-    workoutName: {
+    task: {
         fontSize: 18,
-        fontWeight: 'bold',
-        marginBottom: 10,
     },
-    exercisesTitle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        marginBottom: 5,
-    },
-    exerciseText: {
-        fontSize: 14,
-        lineHeight: 20,
+    taskCompleted: {
+        fontSize: 18,
+        textDecorationLine: 'line-through',
+        color: 'grey',
     },
 });
